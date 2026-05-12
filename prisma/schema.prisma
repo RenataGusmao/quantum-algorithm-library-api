@@ -12,21 +12,20 @@ model User {
   nome         String
   email        String   @unique
   senhaHash    String
-  perfil       String
+  perfil       String   @default("admin")
   status       String   @default("ativo")
   criadoEm     DateTime @default(now())
   atualizadoEm DateTime @updatedAt
 
   algoritmosCriados     Algoritmo[] @relation("CriadoPor")
   algoritmosAtualizados Algoritmo[] @relation("AtualizadoPor")
-  logsAuditoria         LogAuditoria[]
 
   @@map("users")
 }
 
 model TipoProblema {
   id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  nome      String
+  nome      String   @unique
   descricao String?
   criadoEm  DateTime @default(now())
 
@@ -39,17 +38,28 @@ model Algoritmo {
   id                String   @id @default(auto()) @map("_id") @db.ObjectId
   nome              String
   slug              String   @unique
+  categoria         String?
   descricaoCurta    String
   descricaoCompleta String?
-  nivelComplexidade String?
+
+  complexidade      String?
+  nivelDificuldade  String?
   maturidade        String?
   statusPublicacao  String   @default("rascunho")
+
+  aplicacoes        String[]
+  caracteristicas   String[]
+  vantagens         String[]
+  limitacoes        String[]
+  tags              String[]
+
   linkOrigem        String?
+
   criadoEm          DateTime @default(now())
   atualizadoEm      DateTime @updatedAt
 
-  idTipoProblema String @db.ObjectId
-  tipoProblema   TipoProblema @relation(fields: [idTipoProblema], references: [id])
+  idTipoProblema String?       @db.ObjectId
+  tipoProblema   TipoProblema? @relation(fields: [idTipoProblema], references: [id])
 
   criadoPorId String? @db.ObjectId
   criadoPor   User?   @relation("CriadoPor", fields: [criadoPorId], references: [id])
@@ -57,58 +67,9 @@ model Algoritmo {
   atualizadoPorId String? @db.ObjectId
   atualizadoPor   User?   @relation("AtualizadoPor", fields: [atualizadoPorId], references: [id])
 
-  caracteristicas AlgoritmoCaracteristica[]
-  areasAplicacao  AlgoritmoAreaAplicacao[]
-  referencias     Referencia[]
+  referencias Referencia[]
 
   @@map("algoritmos")
-}
-
-model Caracteristica {
-  id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  nome      String
-  descricao String?
-  categoria String?
-  criadoEm  DateTime @default(now())
-
-  algoritmos AlgoritmoCaracteristica[]
-
-  @@map("caracteristicas")
-}
-
-model AlgoritmoCaracteristica {
-  id String @id @default(auto()) @map("_id") @db.ObjectId
-
-  algoritmoId String @db.ObjectId
-  algoritmo   Algoritmo @relation(fields: [algoritmoId], references: [id])
-
-  caracteristicaId String @db.ObjectId
-  caracteristica   Caracteristica @relation(fields: [caracteristicaId], references: [id])
-
-  @@map("algoritmo_caracteristicas")
-}
-
-model AreaAplicacao {
-  id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  nome      String
-  descricao String?
-  criadoEm  DateTime @default(now())
-
-  algoritmos AlgoritmoAreaAplicacao[]
-
-  @@map("areas_aplicacao")
-}
-
-model AlgoritmoAreaAplicacao {
-  id String @id @default(auto()) @map("_id") @db.ObjectId
-
-  algoritmoId String @db.ObjectId
-  algoritmo   Algoritmo @relation(fields: [algoritmoId], references: [id])
-
-  areaAplicacaoId String @db.ObjectId
-  areaAplicacao   AreaAplicacao @relation(fields: [areaAplicacaoId], references: [id])
-
-  @@map("algoritmo_areas_aplicacao")
 }
 
 model Referencia {
@@ -120,23 +81,8 @@ model Referencia {
   link           String?
   criadoEm       DateTime @default(now())
 
-  algoritmoId String @db.ObjectId
+  algoritmoId String    @db.ObjectId
   algoritmo   Algoritmo @relation(fields: [algoritmoId], references: [id])
 
   @@map("referencias")
-}
-
-model LogAuditoria {
-  id                String   @id @default(auto()) @map("_id") @db.ObjectId
-  entidadeAfetada   String
-  idRegistroAfetado String?
-  acao              String
-  valorAnterior     String?
-  valorNovo         String?
-  criadoEm          DateTime @default(now())
-
-  usuarioId String @db.ObjectId
-  usuario   User @relation(fields: [usuarioId], references: [id])
-
-  @@map("logs_auditoria")
 }
