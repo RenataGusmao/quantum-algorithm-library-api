@@ -1,13 +1,142 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Get a free hosted Postgres database in seconds: `npx create-db`
-
 generator client {
-  provider = "prisma-client"
-  output   = "../generated/prisma"
+  provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  nome         String
+  email        String   @unique
+  senhaHash    String
+  perfil       String
+  status       String   @default("ativo")
+  criadoEm     DateTime @default(now())
+  atualizadoEm DateTime @updatedAt
+
+  algoritmosCriados     Algoritmo[] @relation("CriadoPor")
+  algoritmosAtualizados Algoritmo[] @relation("AtualizadoPor")
+  logsAuditoria         LogAuditoria[]
+
+  @@map("users")
+}
+
+model TipoProblema {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  nome      String
+  descricao String?
+  criadoEm  DateTime @default(now())
+
+  algoritmos Algoritmo[]
+
+  @@map("tipos_problema")
+}
+
+model Algoritmo {
+  id                String   @id @default(auto()) @map("_id") @db.ObjectId
+  nome              String
+  slug              String   @unique
+  descricaoCurta    String
+  descricaoCompleta String?
+  nivelComplexidade String?
+  maturidade        String?
+  statusPublicacao  String   @default("rascunho")
+  linkOrigem        String?
+  criadoEm          DateTime @default(now())
+  atualizadoEm      DateTime @updatedAt
+
+  idTipoProblema String @db.ObjectId
+  tipoProblema   TipoProblema @relation(fields: [idTipoProblema], references: [id])
+
+  criadoPorId String? @db.ObjectId
+  criadoPor   User?   @relation("CriadoPor", fields: [criadoPorId], references: [id])
+
+  atualizadoPorId String? @db.ObjectId
+  atualizadoPor   User?   @relation("AtualizadoPor", fields: [atualizadoPorId], references: [id])
+
+  caracteristicas AlgoritmoCaracteristica[]
+  areasAplicacao  AlgoritmoAreaAplicacao[]
+  referencias     Referencia[]
+
+  @@map("algoritmos")
+}
+
+model Caracteristica {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  nome      String
+  descricao String?
+  categoria String?
+  criadoEm  DateTime @default(now())
+
+  algoritmos AlgoritmoCaracteristica[]
+
+  @@map("caracteristicas")
+}
+
+model AlgoritmoCaracteristica {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+
+  algoritmoId String @db.ObjectId
+  algoritmo   Algoritmo @relation(fields: [algoritmoId], references: [id])
+
+  caracteristicaId String @db.ObjectId
+  caracteristica   Caracteristica @relation(fields: [caracteristicaId], references: [id])
+
+  @@map("algoritmo_caracteristicas")
+}
+
+model AreaAplicacao {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  nome      String
+  descricao String?
+  criadoEm  DateTime @default(now())
+
+  algoritmos AlgoritmoAreaAplicacao[]
+
+  @@map("areas_aplicacao")
+}
+
+model AlgoritmoAreaAplicacao {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+
+  algoritmoId String @db.ObjectId
+  algoritmo   Algoritmo @relation(fields: [algoritmoId], references: [id])
+
+  areaAplicacaoId String @db.ObjectId
+  areaAplicacao   AreaAplicacao @relation(fields: [areaAplicacaoId], references: [id])
+
+  @@map("algoritmo_areas_aplicacao")
+}
+
+model Referencia {
+  id             String   @id @default(auto()) @map("_id") @db.ObjectId
+  titulo         String
+  autores        String?
+  ano            Int?
+  tipoReferencia String?
+  link           String?
+  criadoEm       DateTime @default(now())
+
+  algoritmoId String @db.ObjectId
+  algoritmo   Algoritmo @relation(fields: [algoritmoId], references: [id])
+
+  @@map("referencias")
+}
+
+model LogAuditoria {
+  id                String   @id @default(auto()) @map("_id") @db.ObjectId
+  entidadeAfetada   String
+  idRegistroAfetado String?
+  acao              String
+  valorAnterior     String?
+  valorNovo         String?
+  criadoEm          DateTime @default(now())
+
+  usuarioId String @db.ObjectId
+  usuario   User @relation(fields: [usuarioId], references: [id])
+
+  @@map("logs_auditoria")
 }
