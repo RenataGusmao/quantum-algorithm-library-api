@@ -15,6 +15,7 @@
   },
   "scripts": {
     "dev": "tsx src/server.ts",
+    "start": "tsx src/server.ts",
     "prisma:generate": "prisma generate",
     "prisma:studio": "prisma studio"
   }
