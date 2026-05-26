@@ -162,7 +162,28 @@ algoritmosRouter.put("/:id", async (req, res, next) => {
 
 algoritmosRouter.delete("/:id", async (req, res, next) => {
   try {
-    await prisma.algoritmo.delete({ where: { id: req.params.id } });
+    const algoritmo = await prisma.algoritmo.findFirst({
+      where: {
+        OR: [
+          { id: req.params.id },
+          { slug: req.params.id },
+        ],
+      },
+    });
+
+    if (!algoritmo) {
+      res.status(404).json({ message: "Algoritmo nao encontrado" });
+      return;
+    }
+
+    await prisma.referencia.deleteMany({
+      where: { algoritmoId: algoritmo.id },
+    });
+
+    await prisma.algoritmo.delete({
+      where: { id: algoritmo.id },
+    });
+
     res.status(204).send();
   } catch (error) {
     next(error);
