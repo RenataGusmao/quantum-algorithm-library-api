@@ -1,9 +1,10 @@
 import { Router } from "express";
 import { prisma } from "../lib/prisma";
+import { autenticar, exigirPerfil } from "../middlewares/auth";
 
 export const tiposProblemaRouter = Router();
 
-tiposProblemaRouter.get("/", async (_req, res, next) => {
+tiposProblemaRouter.get("/", autenticar, async (_req, res, next) => {
   try {
     const tipos = await prisma.tipoProblema.findMany({
       orderBy: { nome: "asc" },
@@ -16,7 +17,7 @@ tiposProblemaRouter.get("/", async (_req, res, next) => {
   }
 });
 
-tiposProblemaRouter.get("/:id", async (req, res, next) => {
+tiposProblemaRouter.get("/:id", autenticar, async (req, res, next) => {
   try {
     const tipo = await prisma.tipoProblema.findUnique({
       where: { id: req.params.id },
@@ -34,7 +35,7 @@ tiposProblemaRouter.get("/:id", async (req, res, next) => {
   }
 });
 
-tiposProblemaRouter.post("/", async (req, res, next) => {
+tiposProblemaRouter.post("/", autenticar, exigirPerfil("admin"), async (req, res, next) => {
   try {
     const { nome, descricao } = req.body;
 
@@ -53,7 +54,7 @@ tiposProblemaRouter.post("/", async (req, res, next) => {
   }
 });
 
-tiposProblemaRouter.put("/:id", async (req, res, next) => {
+tiposProblemaRouter.put("/:id", autenticar, exigirPerfil("admin"), async (req, res, next) => {
   try {
     const { nome, descricao } = req.body;
 
@@ -68,7 +69,7 @@ tiposProblemaRouter.put("/:id", async (req, res, next) => {
   }
 });
 
-tiposProblemaRouter.delete("/:id", async (req, res, next) => {
+tiposProblemaRouter.delete("/:id", autenticar, exigirPerfil("admin"), async (req, res, next) => {
   try {
     await prisma.tipoProblema.delete({ where: { id: req.params.id } });
     res.status(204).send();

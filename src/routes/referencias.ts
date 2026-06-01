@@ -1,9 +1,10 @@
 import { Router } from "express";
 import { prisma } from "../lib/prisma";
+import { autenticar, exigirPerfil } from "../middlewares/auth";
 
 export const referenciasRouter = Router();
 
-referenciasRouter.get("/", async (req, res, next) => {
+referenciasRouter.get("/", autenticar, async (req, res, next) => {
   try {
     const { algoritmoId } = req.query;
 
@@ -20,7 +21,7 @@ referenciasRouter.get("/", async (req, res, next) => {
   }
 });
 
-referenciasRouter.get("/:id", async (req, res, next) => {
+referenciasRouter.get("/:id", autenticar, async (req, res, next) => {
   try {
     const referencia = await prisma.referencia.findUnique({
       where: { id: req.params.id },
@@ -38,7 +39,7 @@ referenciasRouter.get("/:id", async (req, res, next) => {
   }
 });
 
-referenciasRouter.post("/", async (req, res, next) => {
+referenciasRouter.post("/", autenticar, exigirPerfil("admin"), async (req, res, next) => {
   try {
     const { titulo, autores, ano, tipoReferencia, link, algoritmoId } = req.body;
 
@@ -65,7 +66,7 @@ referenciasRouter.post("/", async (req, res, next) => {
   }
 });
 
-referenciasRouter.put("/:id", async (req, res, next) => {
+referenciasRouter.put("/:id", autenticar, exigirPerfil("admin"), async (req, res, next) => {
   try {
     const { titulo, autores, ano, tipoReferencia, link, algoritmoId } = req.body;
 
@@ -88,7 +89,7 @@ referenciasRouter.put("/:id", async (req, res, next) => {
   }
 });
 
-referenciasRouter.delete("/:id", async (req, res, next) => {
+referenciasRouter.delete("/:id", autenticar, exigirPerfil("admin"), async (req, res, next) => {
   try {
     await prisma.referencia.delete({ where: { id: req.params.id } });
     res.status(204).send();
