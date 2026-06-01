@@ -4,6 +4,8 @@ import "dotenv/config";
 import { algoritmosRouter } from "./routes/algoritmos";
 import { tiposProblemaRouter } from "./routes/tipos-problema";
 import { referenciasRouter } from "./routes/referencias";
+import { authRouter } from "./routes/auth";
+import { usersRouter } from "./routes/users";
 
 const app = express();
 
@@ -18,6 +20,8 @@ app.get("/health", (_req, res) => {
   res.json({ status: "ok" });
 });
 
+app.use("/auth", authRouter);
+app.use("/users", usersRouter);
 app.use("/algoritmos", algoritmosRouter);
 app.use("/tipos-problema", tiposProblemaRouter);
 app.use("/referencias", referenciasRouter);

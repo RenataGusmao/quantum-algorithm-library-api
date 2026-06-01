@@ -1,10 +1,11 @@
 import { Router } from "express";
 import { prisma } from "../lib/prisma";
 import { isObjectId, toStringArray } from "../lib/request";
+import { autenticar, exigirPerfil } from "../middlewares/auth";
 
 export const algoritmosRouter = Router();
 
-algoritmosRouter.get("/", async (req, res, next) => {
+algoritmosRouter.get("/", autenticar, async (req, res, next) => {
   try {
     const { busca, status, tipoProblemaId } = req.query;
 
@@ -37,7 +38,7 @@ algoritmosRouter.get("/", async (req, res, next) => {
   }
 });
 
-algoritmosRouter.get("/:idOuSlug", async (req, res, next) => {
+algoritmosRouter.get("/:idOuSlug", autenticar, async (req, res, next) => {
   try {
     const { idOuSlug } = req.params;
 
@@ -60,7 +61,7 @@ algoritmosRouter.get("/:idOuSlug", async (req, res, next) => {
   }
 });
 
-algoritmosRouter.post("/", async (req, res, next) => {
+algoritmosRouter.post("/", autenticar, exigirPerfil("admin"), async (req, res, next) => {
   try {
     const {
       nome,
@@ -123,7 +124,7 @@ algoritmosRouter.post("/", async (req, res, next) => {
   }
 });
 
-algoritmosRouter.put("/:id", async (req, res, next) => {
+algoritmosRouter.put("/:id", autenticar, exigirPerfil("admin"), async (req, res, next) => {
   try {
     const data = {
       ...req.body,
@@ -160,7 +161,7 @@ algoritmosRouter.put("/:id", async (req, res, next) => {
   }
 });
 
-algoritmosRouter.delete("/:id", async (req, res, next) => {
+algoritmosRouter.delete("/:id", autenticar, exigirPerfil("admin"), async (req, res, next) => {
   try {
     const algoritmo = await prisma.algoritmo.findFirst({
       where: {
